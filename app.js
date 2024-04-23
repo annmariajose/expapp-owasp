@@ -1,3 +1,5 @@
+const { execPath } = require('process');
+
 const express               =  require('express'),
       expSession            =  require("express-session"),
       app                   =  express(),
@@ -7,7 +9,8 @@ const express               =  require('express'),
       LocalStrategy         =  require("passport-local"),
       passportLocalMongoose =  require("passport-local-mongoose"),
       User                  =  require("./models/user"),
-      mongoSanitize          =  require('express-mongo-sanitize')
+      mongoSanitize         =  require('express-mongo-sanitize'),
+      rateLimit             =  require('express-rate-limit') 
 
 //Connecting database
 mongoose.connect("mongodb://localhost/auth_demo");
@@ -40,6 +43,17 @@ app.use(express.static("public"));
 //=======================
 // Data sanitization against NoSQL Injection Attacks
 app.use(mongoSanitize());
+
+// Preventing Brute Force & DOS Attacks - Rate Limiting
+const limit = rateLimit({
+    max: 100,//max requests
+    windowMs: 60 * 60 * 1000, // 1 hour of 'ban' / lockout
+    message: 'Too many requests'
+});
+app.use('/routeName', limit); // Setting limiter on specific route
+
+//Preventing DOS Attacks - Body Parser
+app.use(express.json({limit: '10kv'})); // Body limit is 10
 
 
 //=======================

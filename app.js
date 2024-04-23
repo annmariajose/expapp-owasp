@@ -6,7 +6,8 @@ const express               =  require('express'),
       bodyParser            =  require("body-parser"),
       LocalStrategy         =  require("passport-local"),
       passportLocalMongoose =  require("passport-local-mongoose"),
-      User                  =  require("./models/user")
+      User                  =  require("./models/user"),
+      mongoSanitize          =  require('express-mongo-sanitize')
 
 //Connecting database
 mongoose.connect("mongodb://localhost/auth_demo");
@@ -14,7 +15,12 @@ mongoose.connect("mongodb://localhost/auth_demo");
 app.use(expSession({
     secret:"mysecret",       //decode or encode session
     resave: false,          
-    saveUninitialized:false
+    saveUninitialized:true,
+    cookie: {
+        httpOnly: true,
+        secure: true,
+        maxAge: 1 * 60 * 1000 // 10 minutes
+    }
 }))
 
 passport.serializeUser(User.serializeUser());       //session encoding
@@ -32,7 +38,8 @@ app.use(express.static("public"));
 //=======================
 //      O W A S P
 //=======================
-
+// Data sanitization against NoSQL Injection Attacks
+app.use(mongoSanitize());
 
 
 //=======================

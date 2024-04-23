@@ -10,7 +10,9 @@ const express               =  require('express'),
       passportLocalMongoose =  require("passport-local-mongoose"),
       User                  =  require("./models/user"),
       mongoSanitize         =  require('express-mongo-sanitize'),
-      rateLimit             =  require('express-rate-limit') 
+      rateLimit             =  require('express-rate-limit'),
+      xss                   =  require('xss-clean'),
+      helmet                =  require('helmet'); 
 
 //Connecting database
 mongoose.connect("mongodb://localhost/auth_demo");
@@ -54,6 +56,12 @@ app.use('/routeName', limit); // Setting limiter on specific route
 
 //Preventing DOS Attacks - Body Parser
 app.use(express.json({limit: '10kv'})); // Body limit is 10
+
+// Data Sanitization against XSS attacks
+app.use(xss());
+
+// Helmet to secure connection and data
+app.use(helmet());
 
 
 //=======================

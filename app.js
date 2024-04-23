@@ -12,7 +12,9 @@ const express               =  require('express'),
       mongoSanitize         =  require('express-mongo-sanitize'),
       rateLimit             =  require('express-rate-limit'),
       xss                   =  require('xss-clean'),
-      helmet                =  require('helmet'); 
+      helmet                =  require('helmet');
+
+const { check, validationResult } = require('express-validator'); 
 
 //Connecting database
 mongoose.connect("mongodb://localhost/auth_demo");
@@ -83,21 +85,51 @@ app.post("/login",passport.authenticate("local",{
 }),function (req, res){
 });
 app.get("/register",(req,res)=>{
-    res.render("register");
+    res.render("register", {
+        errors: [],
+        data: req.body
+    });
 });
 
-app.post("/register",(req,res)=>{
-    
-    User.register(new User({username: req.body.username,email: req.body.email,phone: req.body.phone}),req.body.password,function(err,user){
-        if(err){
-            console.log(err);
-            res.render("register");
+app.post("/register",
+    [
+        check('username')
+        .isLength({ min: 1 })
+        .withMessage('Please enter a username'),
+        check('password')
+        .isLength({ min: 1 })
+        .withMessage('Please enter a password'),
+        check('email')
+        .isLength({ min: 1 })
+        .withMessage('Please enter an email'),
+        check('phone')
+        .isLength({ min: 1 })
+        .withMessage('Please enter a phone number'),
+    ],
+    async (req,res)=>{
+        const errors = validationResult(req);
+        console.log("error: " + errors);
+        if (errors.isEmpty()) {
+            User.register(new User({username: req.body.username,email: req.body.email,phone: req.body.phone}),req.body.password,function(err,user){
+                if(err){
+                    console.log(err);
+                    res.render("register", {
+                        errors: [],
+                        data: req.body,
+                    });
+                }
+                passport.authenticate("local")(req,res,function(){
+                    res.redirect("/login");
+                })    
+            })
+        } else {
+            res.render('register', {
+                errors: errors.array(),
+                data: req.body,
+            });
         }
-        passport.authenticate("local")(req,res,function(){
-            res.redirect("/login");
-        })    
-    })
-})
+    });
+
 app.get("/logout",(req,res)=>{
     req.logout();
     res.redirect("/");

@@ -1,18 +1,28 @@
 <%- include('header'); %>
 <%- include('nav'); %>
+<script>var data = "<%= data || {} %>"</script>
 <main>
 <h3>
     Sign Up
 </h3>
+<ul>
+    <% if (errors){ %>
+        <ul class="my-errors">
+            <% errors.forEach(function(error) { %>
+                <li><p><%= error.msg %></p></li>
+            <% }); %>
+        </ul>
+    <% } %>
+</ul>
 <form action="/register" method="POST">
     <label for="username">Username</label>
-    <input type="text" id="username" name="username">
+    <input type="text" id="username" name="username" value="<%= data.username %>">
     <label for="password">Password</label>
-    <input type="password" id="password" name="password">
+    <input type="password" id="password" name="password" value="<%= data.password %>">
     <label for="email">Email</label>
-    <input type="email" name="email" id="email">
+    <input type="email" name="email" id="email" value="<%= data.email %>">
     <label for="phone">Phone</label>
-    <input type="text" name="phone" id="phone">
+    <input type="text" name="phone" id="phone" value="<%= data.phone %>">
     <button class="btn btn-success">Submit</button>
 </form>
 </main>
